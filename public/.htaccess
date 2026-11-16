@@ -1,0 +1,34 @@
+# Pipo - reglas para Apache/LiteSpeed (Hostinger y DonWeb usan LiteSpeed/Apache)
+Options -Indexes
+ServerSignature Off
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Forzar HTTPS
+    RewriteCond %{HTTPS} !=on
+    RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # Bloquear archivos ocultos (.env, .git, etc.)
+    RewriteRule (^|/)\. - [F,L]
+
+    # Todo lo que no sea un archivo real va a index.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L,QSA]
+</IfModule>
+
+# Nunca servir archivos sensibles si por error quedan dentro de public_html
+<FilesMatch "\.(sql|log|ini|env|lock|json|md|sh)$">
+    Require all denied
+</FilesMatch>
+
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+</IfModule>
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 7 days"
+    ExpiresByType application/javascript "access plus 7 days"
+</IfModule>
