@@ -12,6 +12,9 @@ final class Http
      */
     public static function request(string $method, string $url, array $headers = [], string|array|null $body = null, int $timeout = 30): array
     {
+        // Solo HTTPS. Excepción: localhost con app.debug (para desarrollo).
+        $host = (string) parse_url($url, PHP_URL_HOST);
+        $allowHttp = Config::get('app.debug') && in_array($host, ['127.0.0.1', 'localhost'], true);
         $ch = curl_init($url);
         $h = [];
         foreach ($headers as $k => $v) {
@@ -27,7 +30,7 @@ final class Http
             CURLOPT_HTTPHEADER     => $h,
             CURLOPT_TIMEOUT        => $timeout,
             CURLOPT_CONNECTTIMEOUT => 10,
-            CURLOPT_PROTOCOLS      => CURLPROTO_HTTPS,
+            CURLOPT_PROTOCOLS      => $allowHttp ? (CURLPROTO_HTTPS | CURLPROTO_HTTP) : CURLPROTO_HTTPS,
             CURLOPT_SSL_VERIFYPEER => true,
         ]);
         if ($body !== null) {

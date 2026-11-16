@@ -45,8 +45,9 @@ final class CronService
             }
         }
 
-        // 3) Sincronizar mails y 4) resumen diario
+        // 3) Sincronizar mails y mensajes de Lime CRM, 4) resumen diario
         foreach (Database::all('SELECT * FROM users WHERE is_active = 1') as $u) {
+            $stats['lime'] = ($stats['lime'] ?? 0) + LimeCrmService::syncUser((int) $u['id']);
             if (Database::one("SELECT id FROM integrations WHERE user_id = ? AND provider IN ('google','imap') LIMIT 1", [$u['id']])) {
                 $stats['synced'] += MailService::syncAll((int) $u['id']);
             }

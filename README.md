@@ -120,7 +120,10 @@ Elegí **PHP 8.3** (o 8.2+) en hPanel. Tienen que estar activas las extensiones 
 
 > Para comercializarlo con muchos usuarios, Google exige **verificar la app**, porque `gmail.modify` es un scope restringido. Mientras la uses vos (y hasta 100 usuarios de prueba) no hace falta.
 
-## WhatsApp desde tu CRM
+## WhatsApp desde Lime CRM
+Pipo se conecta a **Lime CRM** (crmlime.com) con un token de solo lectura y trae cada 5 minutos los mensajes de WhatsApp, Instagram y Messenger de tu empresa. Las instrucciones y el código para agregar a Lime están en [`integraciones/lime-crm/`](integraciones/lime-crm/README.md). Después de agregarlo, conectalo en Pipo → **Configuración → Lime CRM**.
+
+## WhatsApp desde otro CRM (webhook)
 En **WhatsApp** dentro de Pipo vas a ver una **URL secreta de webhook**. Configurala en tu CRM para que envíe un `POST` con JSON por cada mensaje:
 
 ```json

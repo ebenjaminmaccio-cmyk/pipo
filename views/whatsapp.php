@@ -35,8 +35,20 @@
         <?php endif; ?>
 
         <section class="card">
-            <h2>Conectar tu CRM</h2>
-            <p class="small">Configurá en tu CRM un <b>webhook</b> que envíe cada mensaje de WhatsApp (POST, JSON) a esta URL secreta:</p>
+            <div class="card-head"><h2>🍋 Lime CRM</h2>
+                <?php if ($lime): ?><form method="post" action="/whatsapp/sincronizar" data-loading="Trayendo…"><?= Csrf::field() ?><button class="btn small">↻ Traer mensajes</button></form><?php endif; ?></div>
+            <?php if ($lime): ?>
+                <?php foreach ($lime as $l): $st = json_decode((string) $l['settings'], true) ?: []; ?>
+                    <p class="small">Conectado: <b><?= View::e($l['label']) ?></b> · última sincronización <?= !empty($st['last_sync']) ? View::date($st['last_sync']) : 'pendiente' ?>. Se actualiza sola cada 5 minutos.</p>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <p class="small">Conectá Lime en <a href="/configuracion#lime">Configuración</a> para que Pipo lea y resuma tus chats.</p>
+            <?php endif; ?>
+        </section>
+
+        <section class="card">
+            <h2>Otro CRM o WhatsApp Cloud API (webhook)</h2>
+            <p class="small">Si usás otro sistema, configurá un <b>webhook</b> que envíe cada mensaje (POST, JSON) a esta URL secreta:</p>
             <input readonly value="<?= View::e($webhookUrl) ?>" class="mono" data-copy>
             <details><summary class="small">Formato aceptado</summary>
 <pre class="mono small">{

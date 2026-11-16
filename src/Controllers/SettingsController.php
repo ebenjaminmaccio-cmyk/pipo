@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\{Audit, Auth, Config, Crypto, Csrf, Database, Request, Session, Totp, View};
-use App\Services\{GoogleClient, Integrations};
+use App\Services\{GoogleClient, Integrations, LimeCrmService};
 use Webklex\PHPIMAP\ClientManager;
 
 final class SettingsController
@@ -84,6 +84,36 @@ final class SettingsController
         Audit::log('imap_connected', ['account' => $secret['username']]);
         Session::flash('ok', 'Casilla conectada. Tocá "Actualizar" en Mail para descargar los mensajes.');
         View::redirect('/configuracion');
+    }
+
+    /** Conecta Lime CRM con la URL y el token de solo lectura generado en Lime. */
+    public static function lime(): void
+    {
+        $u = Auth::require();
+        Csrf::verify();
+        $url = LimeCrmService::normalizeUrl(Request::str('url', '', 255));
+        $token = strtolower(Request::str('token', '', 100));
+        if ($url === null || !preg_match('/^[a-f0-9]{64}$/', $token)) {
+            Session::flash('error', 'Revisá la dirección de Lime y el token (64 caracteres).');
+            View::redirect('/configuracion#lime');
+        }
+        try {
+            LimeCrmService::fetch($url, $token, 0, 1); // prueba de conexión
+        } catch (\Throwable $e) {
+            Session::flash('error', 'No me pude conectar con Lime: ' . $e->getMessage());
+            View::redirect('/configuracion#lime');
+        }
+        $label = 'Lime CRM (' . parse_url($url, PHP_URL_HOST) . ')';
+        $id = Integrations::save((int) $u['id'], 'whatsapp_crm', $label, ['url' => $url, 'token' => $token], ['cursor' => 0]);
+        Audit::log('lime_connected', ['url' => $url]);
+        @set_time_limit(120);
+        try {
+            $n = LimeCrmService::sync(Integrations::get((int) $u['id'], $id));
+            Session::flash('ok', "Lime CRM conectado. Se trajeron $n mensajes" . ($n >= 10000 ? ' (el resto se completa solo en los próximos minutos).' : '.'));
+        } catch (\Throwable $e) {
+            Session::flash('error', 'Conectado, pero falló la primera descarga: ' . $e->getMessage());
+        }
+        View::redirect('/whatsapp');
     }
 
     public static function deleteIntegration(): void

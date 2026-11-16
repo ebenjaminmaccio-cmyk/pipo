@@ -6,7 +6,7 @@
             <h2>Cuentas conectadas</h2>
             <ul class="list">
                 <?php foreach ($integrations as $i): ?>
-                    <li class="row between"><span><?= ['google' => '🟢 Google (Gmail + Calendar)', 'imap' => '📮 IMAP/SMTP', 'whatsapp_crm' => '💬 CRM'][$i['provider']] ?> · <b><?= View::e($i['label']) ?></b></span>
+                    <li class="row between"><span><?= ['google' => '🟢 Google (Gmail + Calendar)', 'imap' => '📮 IMAP/SMTP', 'whatsapp_crm' => '🍋 Lime CRM'][$i['provider']] ?> · <b><?= View::e($i['label']) ?></b></span>
                         <form method="post" action="/configuracion/desconectar" data-confirm="¿Desconectar esta cuenta? Se borrarán sus mails descargados."><?= Csrf::field() ?><input type="hidden" name="id" value="<?= (int) $i['id'] ?>"><button class="link danger small">Desconectar</button></form></li>
                 <?php endforeach; ?>
                 <?php if (!$integrations): ?><li class="muted">Ninguna todavía.</li><?php endif; ?>
@@ -34,6 +34,18 @@
                     <button class="btn">Conectar</button>
                 </form>
             </details>
+        </section>
+
+        <section class="card" id="lime">
+            <h2>Lime CRM (WhatsApp)</h2>
+            <p class="muted small">Pipo lee los mensajes de WhatsApp, Instagram y Messenger de tu empresa en Lime y los resume. Es de solo lectura: no puede enviar nada desde Lime.</p>
+            <form method="post" action="/configuracion/lime" class="stack" data-loading="Conectando…">
+                <?= Csrf::field() ?>
+                <label>Dirección de Lime <input name="url" value="https://crmlime.com" required></label>
+                <label>Token de Pipo (lo genera Lime, 64 caracteres) <input name="token" required autocomplete="off" pattern="[a-fA-F0-9]{64}" class="mono"></label>
+                <button class="btn">Conectar Lime CRM</button>
+            </form>
+            <p class="muted small">¿Cómo obtengo el token? Ver <code>integraciones/lime-crm/README.md</code>.</p>
         </section>
 
         <section class="card" id="memoria">

@@ -17,6 +17,7 @@ final class DigestService
         $tz = (string) $user['timezone'];
         if ($syncFirst) {
             MailService::syncAll($uid);
+            LimeCrmService::syncUser($uid);
         }
 
         $todayLocal = new \DateTimeImmutable('today', new \DateTimeZone($tz));

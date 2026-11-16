@@ -339,9 +339,11 @@ TXT;
                 return ['ok' => true, 'draft_id' => $id, 'estado' => 'pendiente de aprobación del usuario'];
 
             case 'list_whatsapp_chats':
+                LimeCrmService::syncUser($uid);
                 return array_map(fn ($c) => ['chat' => $c['chat'], 'mensajes' => $c['total'], 'ultimas_24h' => (int) $c['last_24h'], 'ultimo' => $fmt($c['last_at'])], WhatsAppService::chats($uid));
 
             case 'get_whatsapp_messages':
+                LimeCrmService::syncUser($uid);
                 $msgs = WhatsAppService::messages($uid, $s('chat', 200) ?: null, (int) ($in['hours'] ?? 24));
                 $lines = array_map(fn ($m) => '[' . $fmt($m['sent_at']) . '] ' . $m['chat'] . ' | ' . ($m['direction'] === 'out' ? 'YO' : $m['sender']) . ': ' . $m['body'], $msgs);
                 return ['cantidad' => count($msgs), 'mensajes' => '<contenido_externo>' . mb_substr(implode("\n", $lines), 0, 60000) . '</contenido_externo>'];

@@ -4,7 +4,8 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\{Auth, Config, Csrf, Request, Session, View};
-use App\Services\{Claude, Time, WhatsAppService};
+use App\Core\Database;
+use App\Services\{Claude, LimeCrmService, Time, WhatsAppService};
 
 final class WhatsAppController
 {
@@ -18,9 +19,20 @@ final class WhatsAppController
             'chat' => $chat,
             'messages' => $chat !== '' ? WhatsAppService::messages((int) $u['id'], $chat, 24 * 30, 300) : [],
             'summary' => Session::get('wa_summary'),
+            'lime' => Database::all("SELECT id, label, settings FROM integrations WHERE user_id = ? AND provider = 'whatsapp_crm'", [$u['id']]),
             'webhookUrl' => rtrim((string) Config::get('app.url'), '/') . '/webhook/whatsapp?token=' . $u['webhook_token'],
         ]);
         Session::forget('wa_summary');
+    }
+
+    public static function sync(): void
+    {
+        $u = Auth::require();
+        Csrf::verify();
+        @set_time_limit(120);
+        $n = LimeCrmService::syncUser((int) $u['id']);
+        Session::flash('ok', $n === 0 ? 'No hay mensajes nuevos en Lime.' : "Se trajeron $n mensajes nuevos de Lime.");
+        View::redirect('/whatsapp');
     }
 
     public static function import(): void
